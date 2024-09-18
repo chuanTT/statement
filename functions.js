@@ -78,10 +78,17 @@ export const loopSliceValue = (str, loop, character = ".") => {
 };
 
 /**
- * @function returnValue
- * @param {string} str - Chuỗi đầu vào
+ * @function
+ * @param {string} value - Chuỗi đầu vào
  * @returns {string} - Chuỗi đầu ra
  */
+export const sliceValueContentFunc = (value) => {
+  const index = value.indexOf("_", 0);
+  if (index !== -1) {
+    return value.slice(index + 1);
+  }
+  return value;
+};
 
 /**
  * @typedef {Object} BankDetails
@@ -102,13 +109,16 @@ const objTransactionBank = {
     keyBank: "MBVCB.",
     loop: 1,
   },
+  PARTNER_MSE: {
+    keyBank: "PARTNER.DIRECT_DEBITS_VCB.MSE.",
+    loop: 1,
+    loopTransfer: 2,
+    func: sliceValueContentFunc,
+  },
   PARTNER: {
     keyBank: "PARTNER.DIRECT_DEBITS_VCB.",
     loop: 2,
     loopTransfer: 3,
-    func: (value) => {
-      console.log(value);
-    },
   },
   OTHER: {
     loop: 1,
@@ -175,7 +185,9 @@ export const transferContentFunc = (transfer) => {
       ? transfer?.slice(indexStart + keyBank?.length)
       : transfer;
     const newTransfer = loopSliceValueTransfer(newStr, newLoop, character);
-    console.log(loopSliceValueTransfer(newStr, newLoop, character));
+    if (func) {
+      return func(newTransfer);
+    }
     return newTransfer;
   }
   return transfer;
