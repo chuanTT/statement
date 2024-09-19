@@ -120,6 +120,11 @@ const objTransactionBank = {
     loop: 2,
     loopTransfer: 3,
   },
+  VCB_CTDK: {
+    keyBank: "VCB.",
+    loop: 1,
+    loopTransfer: 2,
+  },
   OTHER: {
     loop: 1,
     loopTransfer: 3,
@@ -191,4 +196,45 @@ export const transferContentFunc = (transfer) => {
     return newTransfer;
   }
   return transfer;
+};
+
+
+const initIngore = [
+  "Swift",
+  "Page",
+  "Website",
+  "TNX Date",
+  "Ngày GD",
+  "Postal address",
+  "Số CT",
+];
+/**
+ * @function
+ * @param {string} str
+ * @returns {boolean}
+ */
+export const checkIngore = (str) => {
+  return initIngore.some((ingore) => str.startsWith(ingore));
+};
+
+/**
+ * @function
+ * @param {string} str
+ * @param {any[]} arrayBase
+ * @param {number} nextIndex
+ * @returns {string}
+ */
+export const mergeTransfer = (str, arrayBase, nextIndex) => {
+  let isLoop = true;
+  while (isLoop) {
+    const currentNext = arrayBase?.[nextIndex];
+    if (!currentNext || (currentNext && currentNext?.length > 1)) {
+      isLoop = false;
+      break;
+    }
+    const text = currentNext?.[0];
+    str += ` ${text}`;
+    nextIndex += 1;
+  }
+  return str;
 };

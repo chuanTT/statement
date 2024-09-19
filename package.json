@@ -5,6 +5,7 @@
   },
   "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "scan:vcb": "cd ScanData/VCB && node vcb_method1.js && node vcb_method2.js"
   }
 }
