@@ -5,7 +5,7 @@ import {
   readDataPDFParser,
   sliceDetailBank,
 } from "../../functions.js";
-import { initObjBank } from "../../initConfig.js";
+import { config, initObjBank } from "../../initConfig.js";
 
 /**
  * Hàm quét dữ liệu từ Vietinbank và chuyển đổi nó thành đối tượng JSON.
@@ -35,6 +35,7 @@ export const scanDataVietinbank = async (path) => {
   });
 
   writeFilePath(import.meta.url, newFilename, saveDataTranform);
+  writeFilePath(import.meta.url, config.nameFileConfig, objBank, config.config);
 
   return {
     data: saveDataTranform,

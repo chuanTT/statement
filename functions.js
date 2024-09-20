@@ -249,7 +249,7 @@ export const readDataPDFParser = async (path) => {
   const { newFilename } = fileNameFunc(path);
   const DataParser = new PdfDataParser({
     url: path,
-    pages: [1, 2, 3, 4, 5, 6],
+    // pages: [1, 2, 3, 4, 5, 6],
   });
   const data = await DataParser.parse();
   return {

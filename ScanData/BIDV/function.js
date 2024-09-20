@@ -7,7 +7,7 @@ import {
   sliceDetailBank,
   transactionNumberFunc,
 } from "../../functions.js";
-import { initObjBank } from "../../initConfig.js";
+import { config, initObjBank } from "../../initConfig.js";
 
 /**
  * Hàm quét dữ liệu từ BIDV và chuyển đổi nó thành đối tượng JSON.
@@ -59,6 +59,7 @@ export const scanDataBIDV = async (path) => {
   });
 
   writeFilePath(import.meta.url, newFilename, saveDataTranform);
+  writeFilePath(import.meta.url, config.nameFileConfig, objBank, config.config);
 
   return {
     data: saveDataTranform,
