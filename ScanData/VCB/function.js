@@ -46,7 +46,7 @@ export const scanDataVCB = async (path) => {
     let rawAmount = item?.[2];
     let transferContent = item?.[3];
     if (length < 4) {
-      const index = rawAmount.indexOf('"');
+      const index = rawAmount?.indexOf('"');
       if (index !== -1) {
         transferContent = rawAmount?.slice(index + 1);
         rawAmount = rawAmount?.slice(0, index);
