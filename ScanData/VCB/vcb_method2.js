@@ -1,6 +1,10 @@
+import { loopReadDir, pathConfigVCB, readFileConfig } from "../../checkPathSource.js";
 import { scanDataVCBMethod2 } from "./function.js";
-import { objInit } from "./vcb_method1.js";
 
 (async () => {
-  await scanDataVCBMethod2(objInit);
+  const objInit = readFileConfig(pathConfigVCB)
+  await loopReadDir(import.meta.url, async (path) => {
+    await scanDataVCBMethod2(objInit, path);
+  });
 })();
+

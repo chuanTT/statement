@@ -1,4 +1,6 @@
 import moment from "moment";
+import { PdfDataParser } from "pdf-data-parser";
+import { fileNameFunc } from "./checkPathSource.js";
 
 /**
  * @function
@@ -17,7 +19,7 @@ export const sliceTrimValue = (str, s, e) => str.slice(s, e)?.trim();
  */
 export const sliceDetailBank = (
   value,
-  arrCheck = ["GIAO DỊCH NGÀY", "tài khoản:", "tài khoản"]
+  arrCheck = ["GIAO DỊCH NGÀY", "tài khoản cũ:", "tài khoản:", "tài khoản"]
 ) => {
   if (!value) return;
   const upperValue = value.toLocaleUpperCase();
@@ -198,7 +200,6 @@ export const transferContentFunc = (transfer) => {
   return transfer;
 };
 
-
 const initIngore = [
   "Swift",
   "Page",
@@ -237,4 +238,22 @@ export const mergeTransfer = (str, arrayBase, nextIndex) => {
     nextIndex += 1;
   }
   return str;
+};
+
+/**
+ * @function readDataPDFParser
+ * @param {string} path
+ * @returns {Promise<{data?: any[], newFilename: string}>}
+ */
+export const readDataPDFParser = async (path) => {
+  const { newFilename } = fileNameFunc(path);
+  const DataParser = new PdfDataParser({
+    url: path,
+    pages: [1, 2, 3, 4, 5, 6],
+  });
+  const data = await DataParser.parse();
+  return {
+    data,
+    newFilename,
+  };
 };

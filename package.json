@@ -5,7 +5,9 @@
   },
   "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "scan:vcb": "cd ScanData/VCB && node vcb_method1.js && node vcb_method2.js"
+    "start": "npm run scan:vcb && npm run scan:bidv && npm run scan:vietinbank",
+    "scan:vcb": "cd ScanData/VCB && node vcb_method1.js && node vcb_method2.js",
+    "scan:bidv": "cd ScanData/BIDV && node bidv.js",
+    "scan:vietinbank": "cd ScanData/Vietinbank && node vietinbank.js"
   }
 }

@@ -1,17 +1,21 @@
 import { PdfDataParser } from "pdf-data-parser";
-import { pathVCB, writeFilePath } from "../../checkPathSource.js";
-import { join } from "path";
-import { initObjBank } from "../../initConfig.js";
+import { fileNameFunc, writeFilePath } from "../../checkPathSource.js";
+import { config, initObjBank } from "../../initConfig.js";
 import {
   checkIngore,
   convertNumber,
-  formatDate,
   mergeTransfer,
+  readDataPDFParser,
   sliceDetailBank,
   transactionNumberFunc,
   transferContentFunc,
 } from "../../functions.js";
 
+/**
+ * @function
+ * @param {Array<Array<string>>} data - Dữ liệu đầu vào để điền vào đối tượng ngân hàng
+ * @returns {import("../../initConfig.js").BankObject} - Đối tượng ngân hàng đã được điền dữ liệu
+ */
 const fillDataObjInit = (data) => {
   const objInit = initObjBank();
   let i = 0;
@@ -26,31 +30,41 @@ const fillDataObjInit = (data) => {
   return objInit;
 };
 
-export const scanDataVCB = async () => {
-  const DataParser = new PdfDataParser({
-    url: join(pathVCB, "11.09.2024.pdf"),
-    pages: [1],
-  });
-  let data = await DataParser.parse();
+/**
+ * Hàm quét dữ liệu từ VCB và chuyển đổi nó thành đối tượng JSON.
+ * @function scanDataVCB
+ * @param {string} path - Đường dẫn của file PDF cần quét.
+ * @returns {Promise<{ data: Array<Object>, objInit: import("../../initConfig.js").BankObject }>} - Trả về một promise chứa danh sách dữ liệu đã được xử lý và đối tượng khởi tạo.
+ */
+export const scanDataVCB = async (path) => {
+  const { newFilename, data } = await readDataPDFParser(path);
   const sliceHeader = data.slice(0, 3);
   const objInit = fillDataObjInit(sliceHeader);
   const newData = data.slice(4);
   const saveDataTranform = newData.map((item) => {
-    const transferContent = item?.[3]?.replace(/"/g, "")?.trim();
+    const length = item?.length;
+    let rawAmount = item?.[2];
+    let transferContent = item?.[3];
+    if (length < 4) {
+      const index = rawAmount.indexOf('"');
+      if (index !== -1) {
+        transferContent = rawAmount?.slice(index + 1);
+        rawAmount = rawAmount?.slice(0, index);
+      }
+    }
+    transferContent = transferContent?.replace(/"/g, "")?.trim();
+
     return {
       ...objInit,
       transactionDate: item?.[1],
-      amount: convertNumber(item?.[2]),
+      amount: convertNumber(rawAmount),
       transferContent: transferContentFunc(transferContent),
       transactionNumber: transactionNumberFunc(transferContent),
     };
   });
-
-  writeFilePath(
-    import.meta.url,
-    `${formatDate(objInit?.transactionDate)}.json`,
-    saveDataTranform
-  );
+  
+  writeFilePath(import.meta.url, newFilename, saveDataTranform);
+  writeFilePath(import.meta.url, config.nameFileConfig, objInit, config.config);
 
   return {
     data: saveDataTranform,
@@ -58,12 +72,15 @@ export const scanDataVCB = async () => {
   };
 };
 
-export const scanDataVCBMethod2 = async (objInit) => {
-  const DataParser = new PdfDataParser({
-    url: join(pathVCB, "01.09-10.09.2024.pdf"),
-    pages: [1, 2],
-  });
-  let data = await DataParser.parse();
+/**
+ * Hàm quét dữ liệu từ VCB và chuyển đổi nó thành đối tượng JSON.
+ * @function scanDataVCBMethod2
+ * @param {import("../../initConfig.js").BankObject | undefined} objInit
+ * @param {string} path - Đường dẫn của file PDF cần quét.
+ * @returns {Promise<{ data: Array<Object>, objInit: import("../../initConfig.js").BankObject }>} - Trả về một promise chứa danh sách dữ liệu đã được xử lý và đối tượng khởi tạo.
+ */
+export const scanDataVCBMethod2 = async (objInit, path) => {
+  let { newFilename, data } = await readDataPDFParser(path);
   const objInitBank = initObjBank();
   data = data.slice(5);
   objInitBank.accountNumber = data?.[0]?.[1];
@@ -89,7 +106,7 @@ export const scanDataVCBMethod2 = async (objInit) => {
     }
   });
 
-  writeFilePath(import.meta.url, `01.09-10.09.2024.json`, saveDataTranform);
+  writeFilePath(import.meta.url, newFilename, saveDataTranform);
 
   return {
     data: saveDataTranform,

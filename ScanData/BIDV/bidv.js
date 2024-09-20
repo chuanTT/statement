@@ -1,8 +1,8 @@
-import { scanDataVCB } from "./function.js";
 import { loopReadDir } from "../../checkPathSource.js";
+import { scanDataBIDV } from "./function.js";
 
-await (async () => {
+(async () => {
   await loopReadDir(import.meta.url, async (path) => {
-    await scanDataVCB(path);
+    await scanDataBIDV(path);
   });
 })();
