@@ -22,6 +22,7 @@ export const scanDataVietinbank = async (path) => {
   rawAccountNumber = loopSliceValue(rawAccountNumber, 2, " ");
   const lengthDate = loopSliceValue(data?.[5]?.[0], 3, " ")?.length;
   data = data?.slice(12);
+  data = data?.filter((item) => item?.length > 1);
   const saveDataTranform = data.map((item) => {
     let newDate = item?.[0]?.split(" ")?.[0];
     newDate = newDate.slice(-lengthDate);

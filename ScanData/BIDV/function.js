@@ -25,7 +25,7 @@ export const scanDataBIDV = async (path) => {
   let newData = data?.slice(12);
   newData = newData?.filter((item) => item?.length > 2);
   const saveDataTranform = newData?.map((item) => {
-    const newDate = item?.[1]?.split(" ")[0];
+    const newDate = (item?.length === 5 ? item?.[2] : item?.[1])?.split(" ")[0];
     let transferContent = item?.[3] ?? "";
     let transactionNumber = "";
     if (transferContent?.startsWith(objBank?.accountNumber)) {
@@ -48,7 +48,7 @@ export const scanDataBIDV = async (path) => {
       transactionNumber = loopSliceValue(newTransfer, 1, " ");
       transferContent = loopSliceValueTransfer(newTransfer, 2, " ");
     }
-
+    
     return {
       ...objBank,
       transactionDate: newDate,
