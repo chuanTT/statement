@@ -1,6 +1,7 @@
 import moment from "moment";
 import { PdfDataParser } from "pdf-data-parser";
 import { fileNameFunc } from "./checkPathSource.js";
+import { config } from "./initConfig.js";
 
 /**
  * @function
@@ -19,7 +20,13 @@ export const sliceTrimValue = (str, s, e) => str.slice(s, e)?.trim();
  */
 export const sliceDetailBank = (
   value,
-  arrCheck = ["GIAO DỊCH NGÀY", "tài khoản cũ:", "tài khoản:", "tài khoản"]
+  arrCheck = [
+    "GIAO DỊCH NGÀY",
+    "tài khoản cũ:",
+    "tài khoản số:",
+    "tài khoản:",
+    "tài khoản",
+  ]
 ) => {
   if (!value) return;
   const upperValue = value.toLocaleUpperCase();
@@ -238,6 +245,50 @@ export const mergeTransfer = (str, arrayBase, nextIndex) => {
     nextIndex += 1;
   }
   return str;
+};
+
+/**
+ * @function checkNumber
+ * @param {string} value
+ * @returns {boolean}
+ */
+export const checkNumber = (value) => {
+  const regex = /[0-9]/;
+  return regex.test(value);
+};
+
+/**
+ * @function sliceMBVCB
+ * @param {string} transferContent
+ * @returns {{transactionNumber: string, transferContent: string}}
+ */
+export const sliceMBVCB = (transferContent) => {
+  const objTranMBVCB = {
+    transactionNumber: "",
+    transferContent,
+  };
+
+  if (transferContent?.startsWith(objTransactionBank?.["VCB"]?.keyBank)) {
+    objTranMBVCB.transactionNumber = transactionNumberFunc(transferContent);
+    objTranMBVCB.transferContent = loopSliceValueTransfer(transferContent, 3);
+  }
+
+  return objTranMBVCB;
+};
+
+/**
+ * @function sliceFind
+ * @param {string} str
+ * @param {string} key
+ * @param {number} plus
+ * @returns {string}
+ */
+export const sliceFind = (str, key = config.IBFT, plus = 0) => {
+  const indexStr = str.indexOf(key);
+  if (indexStr !== -1) {
+    return sliceTrimValue(str, indexStr + key.length + plus);
+  }
+  return str
 };
 
 /**

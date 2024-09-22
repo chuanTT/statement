@@ -23,5 +23,7 @@ export const config = {
   vietinbank: "VietinBank",
   bidv: "BIDV",
   config: "Config",
-  nameFileConfig: "index.json"
+  nameFileConfig: "index.json",
+
+  IBFT: "IBFT",
 };

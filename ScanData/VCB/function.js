@@ -1,5 +1,4 @@
-import { PdfDataParser } from "pdf-data-parser";
-import { fileNameFunc, writeFilePath } from "../../checkPathSource.js";
+import { writeFilePath } from "../../checkPathSource.js";
 import { config, initObjBank } from "../../initConfig.js";
 import {
   checkIngore,
