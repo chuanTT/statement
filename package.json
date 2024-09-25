@@ -8,6 +8,7 @@
     "start": "npm run scan:vcb && npm run scan:bidv && npm run scan:vietinbank",
     "scan:vcb": "cd ScanData/VCB && node vcb_method1.js && node vcb_method2.js",
     "scan:bidv": "cd ScanData/BIDV && node bidv.js",
-    "scan:vietinbank": "cd ScanData/Vietinbank && node vietinbank_method1.js && node vietinbank_method2.js"
+    "scan:vietinbank": "cd ScanData/Vietinbank && node vietinbank_method1.js && node vietinbank_method2.js",
+    "vcb": "cd ScanData/VCB && node vcb_method3.js"
   }
 }

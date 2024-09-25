@@ -61,7 +61,7 @@ export const scanDataVCB = async (path) => {
       transactionNumber: transactionNumberFunc(transferContent),
     };
   });
-  
+
   writeFilePath(import.meta.url, newFilename, saveDataTranform);
   writeFilePath(import.meta.url, config.nameFileConfig, objInit, config.config);
 
@@ -111,4 +111,19 @@ export const scanDataVCBMethod2 = async (objInit, path) => {
     data: saveDataTranform,
     objInit,
   };
+};
+
+/**
+ * Hàm quét dữ liệu từ VCB và chuyển đổi nó thành đối tượng JSON.
+ * @function scanDataVCBMethod3
+ * @param {import("../../initConfig.js").BankObject | undefined} objInit
+ * @param {string} path - Đường dẫn của file PDF cần quét.
+ * @returns {Promise<{ data: Array<Object>, objInit: import("../../initConfig.js").BankObject }>} - Trả về một promise chứa danh sách dữ liệu đã được xử lý và đối tượng khởi tạo.
+ */
+export const scanDataVCBMethod3 = async (objInit, path) => {
+  let { newFilename, data } = await readDataPDFParser(path);
+  const objInitBank = initObjBank();
+  data = data?.slice(3);
+
+  console.log(data);
 };
