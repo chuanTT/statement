@@ -167,7 +167,11 @@ export const checkMethodPath = (url) => {
  */
 export const loopReadDir = async (url, asyncFunc) => {
   const pathMethod = checkMethodPath(url);
-  const dataStringFile = readdirSync(pathMethod);
+  let dataStringFile = readdirSync(pathMethod);
+  dataStringFile = dataStringFile?.filter((item) => {
+    const ext = parse(item).ext;
+    return config?.exts?.includes(ext);
+  });
 
   for (const filename of dataStringFile) {
     const path = join(pathMethod, filename);

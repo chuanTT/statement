@@ -13,9 +13,6 @@
 
 # data
 /Store
-# nguon data
-/Source
-/Config
 
 # misc
 .DS_Store
@@ -29,4 +26,4 @@ yarn-debug.log*
 yarn-error.log*
 
 # file
-.pdf
+*.pdf

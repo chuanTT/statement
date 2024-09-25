@@ -14,6 +14,20 @@ export const sliceTrimValue = (str, s, e) => str.slice(s, e)?.trim();
 
 /**
  * @function
+ * @param {string} str
+ * @returns {string}
+ * */
+export const sliceAmount = (str) => {
+  const regex = /\d{1,3}(?:\.\d{3})*/;
+  const match = str.match(regex);
+  if (match) {
+    return match[0];
+  }
+  return 0;
+};
+
+/**
+ * @function
  * @param {string | undefined} value
  * @param {string[]} arrCheck
  * @returns {string}
@@ -288,8 +302,14 @@ export const sliceFind = (str, key = config.IBFT, plus = 0) => {
   if (indexStr !== -1) {
     return sliceTrimValue(str, indexStr + key.length + plus);
   }
-  return str
+  return str;
 };
+/**
+ * @function sliceDate
+ * @param {string} str
+ * @returns {string}
+ */
+export const sliceDate = (str) => str?.split(" ")[0]
 
 /**
  * @function readDataPDFParser

@@ -5,10 +5,11 @@ import {
   loopSliceValue,
   loopSliceValueTransfer,
   readDataPDFParser,
+  sliceAmount,
+  sliceDate,
   sliceDetailBank,
   sliceFind,
   sliceMBVCB,
-  transactionNumberFunc,
 } from "../../functions.js";
 import { config, initObjBank } from "../../initConfig.js";
 
@@ -154,14 +155,28 @@ const ruleTKThe = (objNewBank, objTransaction) => {
       " "
     );
     if (objTransaction.transferContent?.startsWith(config.IBFT)) {
-      objTransaction.transferContent = sliceFind(objTransaction.transferContent, config.IBFT, 1);
+      objTransaction.transferContent = sliceFind(
+        objTransaction.transferContent,
+        config.IBFT,
+        1
+      );
     } else {
-      const {transactionNumber, transferContent} = sliceMBVCB(objTransaction.transferContent)
+      const { transactionNumber, transferContent } = sliceMBVCB(
+        objTransaction.transferContent
+      );
       objTransaction.transactionNumber = transactionNumber;
       objTransaction.transferContent = transferContent;
     }
-    objTransaction.transferContent = sliceFind(objTransaction.transferContent, accountNumberOld, 1)
-    objTransaction.transferContent = sliceFind(objTransaction.transferContent, accountNumber, 1)
+    objTransaction.transferContent = sliceFind(
+      objTransaction.transferContent,
+      accountNumberOld,
+      1
+    );
+    objTransaction.transferContent = sliceFind(
+      objTransaction.transferContent,
+      accountNumber,
+      1
+    );
     isLoop = false;
   }
   return { ...objTransaction, isLoop };
@@ -174,13 +189,18 @@ const ruleRem = (_, objTransaction) => {
   let isLoop = true;
   const { transferContent } = objTransaction;
   if (transferContent?.startsWith("REM Tfr Ac")) {
-    let newTransfer = loopSliceValueTransfer(transferContent, 4, " ");
-    objTransaction.transactionNumber = loopSliceValue(newTransfer, 1, " ");
-    objTransaction.transferContent = loopSliceValueTransfer(
-      newTransfer,
-      2,
-      " "
-    );
+    const key = "O@L_";
+    let content = sliceFind(objTransaction.transferContent, key, -key?.length);
+    let rawNumber = loopSliceValue(content, 7, "_");
+    rawNumber = loopSliceValue(rawNumber, 1, " ");
+    const isLenght = rawNumber?.length <= 6
+    let rawContent = loopSliceValueTransfer(content, isLenght ? 1 : 2, " ");
+    if (rawNumber?.length <= 6) {
+      rawNumber = `${rawNumber}${loopSliceValue(rawContent, 1, " ")}`;
+      rawContent = loopSliceValueTransfer(rawContent, 2, " ");
+    }
+    objTransaction.transactionNumber = rawNumber
+    objTransaction.transferContent = rawContent
     isLoop = false;
   }
   return { ...objTransaction, isLoop };
@@ -194,6 +214,40 @@ const objBankBIDV = [ruleAccountNumber, ruleTKThe, ruleRem];
  * @returns {boolean}
  */
 const checkCustomBIDV = (str) => str?.indexOf("khách hàng của BIDV.") !== -1;
+
+/**
+ * @function checkCustomBIDV
+ * @param {any[]} data
+ * @param {import("../../initConfig.js").BankObject | undefined} objBank
+ * @param {string} accountNumberOld
+ * @returns {any[]}
+ */
+const tranformDataFunc = (data, objBank, accountNumberOld) => {
+  return data?.map((item) => {
+    const newDate = sliceDate(item?.[1]);
+    let objTransaction = {
+      transferContent: item?.[3] ?? "",
+      transactionNumber: "",
+    };
+
+    for (let func of objBankBIDV) {
+      const { isLoop, ...spread } = func(
+        { ...objBank, accountNumberOld },
+        objTransaction
+      );
+      if (!isLoop) {
+        objTransaction = spread;
+        break;
+      }
+    }
+    return {
+      ...objBank,
+      transactionDate: newDate,
+      amount: convertNumber(item?.[2]),
+      ...objTransaction,
+    };
+  });
+};
 
 /**
  * Hàm quét dữ liệu từ BIDV và chuyển đổi nó thành đối tượng JSON.
@@ -245,31 +299,11 @@ export const scanDataBIDV = async (path) => {
     return [...total, newItem];
   }, []);
 
-  const saveDataTranform = newDataReduce?.map((item) => {
-    const newDate = item?.[1]?.split(" ")[0];
-    let objTransaction = {
-      transferContent: item?.[3] ?? "",
-      transactionNumber: "",
-    };
-
-    for (let func of objBankBIDV) {
-      const { isLoop, ...spread } = func(
-        { ...objBank, accountNumberOld },
-        objTransaction
-      );
-      if (!isLoop) {
-        objTransaction = spread;
-        break;
-      }
-    }
-    return {
-      ...objBank,
-      transactionDate: newDate,
-      amount: convertNumber(item?.[2]),
-      ...objTransaction,
-    };
-  });
-
+  const saveDataTranform = tranformDataFunc(
+    newDataReduce,
+    objBank,
+    accountNumberOld
+  );
   writeFilePath(import.meta.url, newFilename, saveDataTranform);
   writeFilePath(import.meta.url, config.nameFileConfig, objBank, config.config);
 
@@ -277,4 +311,41 @@ export const scanDataBIDV = async (path) => {
     data: saveDataTranform,
     objInit: objBank,
   };
+};
+
+/**
+ * Hàm quét dữ liệu từ BIDV và chuyển đổi nó thành đối tượng JSON.
+ * @function scanDataBIDV2
+ *  * @param {import("../../initConfig.js").BankObject | undefined} objInit
+ * @param {string} path - Đường dẫn của file PDF cần quét.
+ * @returns {Promise<{ data: Array<Object>, objInit: import("../../initConfig.js").BankObject }>} - Trả về một promise chứa danh sách dữ liệu đã được xử lý và đối tượng khởi tạo.
+ */
+export const scanDataBIDV2 = async (objInit, path) => {
+  const { newFilename, data } = await readDataPDFParser(path);
+  // obj bank
+  const objBank = initObjBank();
+  objBank.bankName = objInit?.bankName ?? "";
+  objBank.accountNumber = data?.[6][2];
+  let accountNumberOld = data?.[7][2]?.replace(/[()]/g, "");
+  let newData = data?.slice(9);
+
+  const filterNewData = newData?.reduce((total, current) => {
+    if (current.includes("STT")) return total;
+    current[1] = sliceDate(current[1]);
+    current?.splice(2, 1);
+    const length = current?.length;
+    const amount = sliceAmount(current[2]);
+    if (length === 3) {
+      const transferContent = sliceFind(current?.[2], amount, 3);
+      current.push(transferContent);
+    }
+    current[2] = amount;
+    return [...total, current];
+  }, []);
+  const saveDataTranform = tranformDataFunc(
+    filterNewData,
+    objBank,
+    accountNumberOld
+  );
+  writeFilePath(import.meta.url, newFilename, saveDataTranform);
 };

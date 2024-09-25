@@ -5,7 +5,10 @@ import {
   convertNumber,
   mergeTransfer,
   readDataPDFParser,
+  sliceAmount,
+  sliceDate,
   sliceDetailBank,
+  sliceFind,
   transactionNumberFunc,
   transferContentFunc,
 } from "../../functions.js";
@@ -90,7 +93,7 @@ export const scanDataVCBMethod2 = async (objInit, path) => {
   dataIngore.map((item, index, arrayBase) => {
     const length = item?.length;
     if (length > 2) {
-      const newDate = item?.[0]?.split(" ")[0];
+      const newDate = sliceDate(item?.[0])
       const missingContent = item?.[length - 1];
       let transferContent = mergeTransfer(missingContent, arrayBase, index + 1);
       transferContent = transferContent?.replace(" .", ".");
@@ -123,7 +126,41 @@ export const scanDataVCBMethod2 = async (objInit, path) => {
 export const scanDataVCBMethod3 = async (objInit, path) => {
   let { newFilename, data } = await readDataPDFParser(path);
   const objInitBank = initObjBank();
-  data = data?.slice(3);
+  data = data?.slice(4);
+  objInitBank.accountNumber = sliceDetailBank(data?.[0][0] ?? "0");
+  objInitBank.bankName = objInit.bankName ?? "";
+  data = data?.slice(4);
+  const dataFilter = data?.reduce((total, current) => {
+    const length = current?.length;
+    const newDate = sliceDate(current[1])
+    const amount = sliceAmount(current[2]);
+    current[1] = newDate;
+    current[2] = amount;
+    if (length === 5) {
+      current?.splice(3, 1);
+    }
+    return [...total, current];
+  }, []);
+  const saveDataTranform = dataFilter.map((item) => {
+    let transferContent = item?.[3];
+    transferContent = transferContent?.replace(/"/g, "")?.trim();    
+    let newContent = transferContentFunc(transferContent)
+    newContent = sliceFind(newContent, `${objInitBank?.accountNumber}:`, 0)
+    newContent = sliceFind(newContent, config.IBFT)
 
-  console.log(data);
+    return {
+      ...objInit,
+      transactionDate: item?.[1],
+      amount: convertNumber(item?.[2]),
+      transferContent: newContent,
+      transactionNumber: transactionNumberFunc(transferContent),
+    };
+  });
+
+  writeFilePath(import.meta.url, newFilename, saveDataTranform);
+
+  return {
+    data: saveDataTranform,
+    objInit,
+  };
 };

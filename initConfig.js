@@ -26,4 +26,6 @@ export const config = {
   nameFileConfig: "index.json",
 
   IBFT: "IBFT",
+
+  exts: [".pdf"],
 };

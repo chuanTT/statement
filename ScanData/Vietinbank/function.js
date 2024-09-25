@@ -3,6 +3,8 @@ import {
   convertNumber,
   loopSliceValue,
   readDataPDFParser,
+  sliceAmount,
+  sliceDate,
   sliceDetailBank,
   sliceFind,
   sliceMBVCB,
@@ -82,7 +84,7 @@ export const transactionFunc = (transfer, objBank) => {
   if (!transfer) return "";
 
   for (const key in objLoopBank) {
-    const { keyBank, loop, character, func } = objLoopBank[key];
+    const { keyBank, func } = objLoopBank[key];
     const indexStart = keyBank ? transfer?.indexOf(keyBank) : 0;
     if (indexStart === -1) {
       continue;
@@ -94,9 +96,6 @@ export const transactionFunc = (transfer, objBank) => {
     if (func) {
       return func(newStr, objBank);
     }
-
-    console.log(newStr);
-
     return {
       transferContent: newStr,
       transactionNumber: "",
@@ -122,11 +121,10 @@ export const scanDataVietinbankMethod1 = async (path, isMethod2 = false) => {
 
   data = data?.filter((item) => item?.length > 1);
   const saveDataTranform = data.map((item) => {
-    let newDate = item?.[isMethod2 ? 1 : 0]?.split(" ")?.[0];
+    let newDate = sliceDate(item?.[isMethod2 ? 1 : 0]);
     newDate = isMethod2 ? newDate : newDate.slice(-lengthDate);
-    const amount = item?.[isMethod2 ? 3 : 2];
+    const amount = sliceAmount(item?.[isMethod2 ? 3 : 2]);
     const transferContent = item?.[isMethod2 ? 2 : 1];
-
     return {
       ...objBank,
       transactionDate: newDate,
